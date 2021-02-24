@@ -3,6 +3,8 @@ const { VueLoaderPlugin } = require("vue-loader");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
+const deps = require('./package.json').dependencies
+
 module.exports = (env = {}) => ({
   mode: "development",
   cache: false,
@@ -17,17 +19,30 @@ module.exports = (env = {}) => ({
   //   publicPath: '/dist/'
   // },
   output: {
+    path: path.resolve(__dirname, "./dist"),
     publicPath: 'http://localhost:3001/',
+    filename: 'static/js/[name].js',
+    chunkFilename: 'static/js/[name].js'
   },
   resolve: {
-    extensions: [".vue", ".jsx", ".js", ".json"],
-    // alias: {
-    //   // this isn't technically needed, since the default `vue` entry for bundlers
-    //   // is a simple `export * from '@vue/runtime-dom`. However having this
-    //   // extra re-export somehow causes webpack to always invalidate the module
-    //   // on the first HMR update and causes the page to reload.
-    //   vue: "vue",
-    // },
+    extensions: [
+      '.tsx',
+      '.ts',
+      '.mjs',
+      '.js',
+      '.jsx',
+      '.vue',
+      '.json',
+      '.wasm'
+    ],
+    alias: {
+      // this isn't technically needed, since the default `vue` entry for bundlers
+      // is a simple `export * from '@vue/runtime-dom`. However having this
+      // extra re-export somehow causes webpack to always invalidate the module
+      // on the first HMR update and causes the page to reload.
+      vue: "vue/dist/vue.runtime.esm.js",
+      "@": path.resolve(__dirname, "./src")
+    },
   },
   module: {
     rules: [
@@ -69,6 +84,18 @@ module.exports = (env = {}) => ({
         home: "home@http://localhost:3002/remoteEntry.js",
       },
       exposes: {},
+      shared: {
+        vue: {
+          eager: true,
+          singleton: true,
+          requiredVersion: deps.vue
+        },
+        "vue-router": {
+          eager: true,
+          singleton: true,
+          requiredVersion: deps["vue-router"]
+        }
+      }
     }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "./index.html"),

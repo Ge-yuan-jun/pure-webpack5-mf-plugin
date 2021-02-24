@@ -3,6 +3,7 @@ const { VueLoaderPlugin } = require("vue-loader");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
+const deps = require('./package.json').dependencies
 
 module.exports = (env = {}) => ({
   mode: "development",
@@ -18,17 +19,29 @@ module.exports = (env = {}) => ({
   //   publicPath: '/dist/'
   // },
   output: {
+    path: path.resolve(__dirname, "./dist"),
     publicPath: 'http://localhost:3002/',
-    // publicPath: "auto",
+    filename: 'static/js/[name].js',
+    chunkFilename: 'static/js/[name].js'
   },
   resolve: {
-    extensions: [".vue", ".jsx", ".js", ".json"],
+    extensions: [
+      '.tsx',
+      '.ts',
+      '.mjs',
+      '.js',
+      '.jsx',
+      '.vue',
+      '.json',
+      '.wasm'
+    ],
     alias: {
       // this isn't technically needed, since the default `vue` entry for bundlers
       // is a simple `export * from '@vue/runtime-dom`. However having this
       // extra re-export somehow causes webpack to always invalidate the module
       // on the first HMR update and causes the page to reload.
-      vue: "vue",
+      vue: "vue/dist/vue.runtime.esm.js",
+      "@": path.resolve(__dirname, "./src")
     },
   },
   module: {
@@ -47,6 +60,26 @@ module.exports = (env = {}) => ({
             limit: 8192
           }
         },
+      },
+      {
+        test: /\.(png|jpe?g|gif|webp)(\?.*)?$/,
+        use: [
+          /* config.module.rule('images').use('url-loader') */
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 4096,
+              esModule: false,
+              fallback: {
+                loader: 'file-loader',
+                options: {
+                  name: 'static/img/[name].[hash:8].[ext]',
+                  esModule: false
+                }
+              }
+            }
+          }
+        ]
       },
       {
         test: /\.css$/,
@@ -75,6 +108,18 @@ module.exports = (env = {}) => ({
         "./Button": "./src/components/Button",
         "./Routes1": "./src/routes"
       },
+      shared: {
+        vue: {
+          eager: true,
+          singleton: true,
+          requiredVersion: deps.vue
+        },
+        "vue-router": {
+          eager: true,
+          singleton: true,
+          requiredVersion: deps["vue-router"]
+        }
+      }
     }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "./index.html"),
