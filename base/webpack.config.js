@@ -101,7 +101,7 @@ module.exports = (env = {}) => ({
       name: "home",
       filename: "remoteEntry.js",
       remotes: {
-        home: "home@http://localhost:3002/remoteEntry.js",
+        layout: "layout@http://localhost:3001/remoteEntry.js",
       },
       exposes: {
         "./Content": "./src/components/Content",
