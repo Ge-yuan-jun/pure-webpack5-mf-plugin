@@ -1,4 +1,4 @@
-e// import { render, h } from "vue";
+// import { render, h } from "vue";
 const button = {
   name: "btn-component",
   render (h) {
